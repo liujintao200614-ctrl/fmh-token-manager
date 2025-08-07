@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FMH代币管理面板 - Fomalhaut Token Management</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.15);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 12px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.2em;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .wallet-section {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #f8f9fd 0%, #e9ecef 100%);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .connect-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+        
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+        }
+        
+        .connect-btn:active {
+            transform: translateY(0);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 24px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+        
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+        
+        .icon-mint { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .icon-burn { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .icon-permission { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .icon-query { background: linear-gradient(135deg, #c3cfe2 0%, #c3cfe2 100%); }
+        .icon-settings { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+        
+        .status {
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-weight: 500;
+            border-left: 4px solid;
+        }
+        
+        .status.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-color: #28a745;
+        }
+        
+        .status.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%);
+            color: #721c24;
+            border-color: #dc3545;
+        }
+        
+        .status.info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #b8daff 100%);
+            color: #0c5460;
+            border-color: #17a2b8;
+        }
+        
+        .status.warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            border-color: #ffc107;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+        
+        .info-item {
+            background: linear-gradient(135deg, #f8f9fd 0%, #e9ecef 100%);
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .info-item .value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .info-item .label {
+            color: #6b7280;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .network-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #bbdefb;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            color: #1565c0;
+            font-weight: 500;
+        }
+        
+        .batch-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .batch-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        
+        .batch-item input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .batch-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            width: auto;
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 16px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 FMH代币管理面板</h1>
+            <p>Fomalhaut Token Management Dashboard - 专业的代币管理工具</p>
+        </div>
+        
+        <div class="content">
+            <div class="network-info">
+                📡 <strong>网络:</strong> Monad测试网 (Chain ID: 10143) | <strong>合约地址:</strong> <span id="contractAddress">请先连接钱包</span><br>
+                <strong>依赖状态:</strong> <span id="ethersStatus">🔄 正在加载依赖库...</span>
+            </div>
+            
+            <div class="wallet-section">
+                <div id="walletStatus">
+                    <h2>🔌 连接钱包开始管理</h2>
+                    <p style="margin: 16px 0; color: #6b7280;">请连接您的MetaMask钱包以开始使用FMH代币管理功能</p>
+                    <button class="connect-btn" onclick="connectWallet()">连接MetaMask钱包</button>
+                </div>
+            </div>
+            
+            <div id="mainPanel" class="hidden">
+                <!-- 合约状态概览 -->
+                <div class="card">
+                    <h3>
+                        <span class="card-icon icon-query">📊</span>
+                        合约状态概览
+                    </h3>
+                    <button class="btn btn-secondary" onclick="refreshContractInfo()">🔄 刷新所有信息</button>
+                    <div id="contractInfo"></div>
+                </div>
+                
+                <div class="grid">
+                    <!-- 铸币面板 -->
+                    <div class="card">
+                        <h3>
+                            <span class="card-icon icon-mint">🏭</span>
+                            铸造代币
+                        </h3>
+                        <div class="form-group">
+                            <label>接收地址:</label>
+                            <input type="text" id="mintToAddress" placeholder="输入接收代币的钱包地址 (0x...)">
+                        </div>
+                        <div class="form-group">
+                            <label>铸造数量:</label>
+                            <input type="number" id="mintAmount" placeholder="输入铸造数量" min="0" step="0.001">
+                        </div>
+                        <button class="btn" onclick="mintTokens()">🏭 执行铸造</button>
+                        <div id="mintStatus"></div>
+                    </div>
+                    
+                    <!-- 单独销毁面板 -->
+                    <div class="card">
+                        <h3>
+                            <span class="card-icon icon-burn">🔥</span>
+                            销毁代币
+                        </h3>
+                        <div class="form-group">
+                            <label>销毁方式:</label>
+                            <select id="burnType" onchange="toggleBurnInputs()">
+                                <option value="burn">销毁自己的代币</option>
+                                <option value="burnFrom">销毁他人的代币</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="burnFromGroup" style="display: none;">
+                            <label>目标地址:</label>
+                            <input type="text" id="burnFromAddress" placeholder="输入要销毁代币的地址">
+                        </div>
+                        <div class="form-group">
+                            <label>销毁数量:</label>
+                            <input type="number" id="burnAmount" placeholder="输入销毁数量" min="0" step="0.001">
+                        </div>
+                        <button class="btn btn-danger" onclick="burnTokens()">🔥 执行销毁</button>
+                        <div id="burnStatus"></div>
+                    </div>
+                    
+                    <!-- 批量销毁面板 -->
+                    <div class="card">
+                        <h3>
+                            <span class="card-icon icon-burn">🔥</span>
+                            批量销毁代币
+                        </h3>
+                        <div class="batch-section">
+                            <div id="batchBurnList">
+                                <div class="batch-item">
+                                    <input type="text" placeholder="地址 (0x...)" class="batch-address">
+                                    <input type="number" placeholder="数量" class="batch-amount" min="0" step="0.001">
+                                    <button class="btn btn-danger btn-small" onclick="removeBatchItem(this)">删除</button>
+                                </div>
+                            </div>
+                            <div class="batch-controls">
+                                <button class="btn btn-secondary btn-small" onclick="addBatchItem()">➕ 添加项目</button>
+                                <button class="btn btn-danger btn-small" onclick="executeBatchBurn()">🔥 批量销毁</button>
+                            </div>
+                        </div>
+                        <div id="batchBurnStatus"></div>
+                    </div>
+                    
+                    <!-- 权限管理面板 -->
+                    <div class="card">
+                        <h3>
+                            <span class="card-icon icon-permission">👥</span>
+                            铸币权限管理
+                        </h3>
+                        <div class="form-group">
+                            <label>添加铸币者:</label>
+                            <input type="text" id="newMinterAddress" placeholder="输入要授权的地址">
+                            <button class="btn" onclick="addMinter()">➕ 添加铸币者</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>移除铸币者:</label>
+                            <input type="text" id="removeMinterAddress" placeholder="输入要移除的地址">
+                            <button class="btn btn-danger" onclick="removeMinter()">➖ 移除铸币者</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>检查权限:</label>
+                            <input type="text" id="checkMinterAddress" placeholder="输入要检查的地址">
+                            <button class="btn btn-secondary" onclick="checkMinterPermission()">🔍 检查权限</button>
+                        </div>
+                        
+                        <div id="minterStatus"></div>
+                    </div>
+                    
+                    <!-- 代币查询面板 -->
+                    <div class="card">
+                        <h3>
+                            <span class="card-icon icon-query">🔍</span>
+                            代币查询
+                        </h3>
+                        <div class="form-group">
+                            <label>查询地址余额:</label>
+                            <input type="text" id="queryAddress" placeholder="输入要查询的钱包地址">
+                            <button class="btn btn-secondary" onclick="queryBalance()">💰 查询余额</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>查询销毁率:</label>
+                            <button class="btn btn-secondary" onclick="getBurnRate()">📈 获取销毁率</button>
+                        </div>
+                        
+                        <div id="queryResults"></div>
+                    </div>
+                    
+                    <!-- 系统设置面板 -->
+                    <div class="card">
+                        <h3>
+                            <span class="card-icon icon-settings">⚙️</span>
+                            系统设置
+                        </h3>
+                        <div class="form-group">
+                            <label>设置游戏合约地址:</label>
+                            <input type="text" id="gameContractAddress" placeholder="输入游戏合约地址">
+                            <button class="btn" onclick="setGameContract()">⚙️ 更新游戏合约</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>当前游戏合约:</label>
+                            <button class="btn btn-secondary" onclick="getCurrentGameContract()">🎮 查询当前游戏合约</button>
+                        </div>
+                        
+                        <div id="settingsStatus"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 多CDN加载策略
+        function loadEthers() {
+            return new Promise((resolve, reject) => {
+                const cdnUrls = [
+                    'https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js',
+                    'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js',
+                    'https://cdn.skypack.dev/ethers@5.7.2',
+                    'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js'
+                ];
+                
+                let currentIndex = 0;
+                
+                function tryLoad() {
+                    if (currentIndex >= cdnUrls.length) {
+                        reject(new Error('所有CDN都无法加载'));
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = cdnUrls[currentIndex];
+                    script.onload = () => {
+                        if (typeof ethers !== 'undefined') {
+                            console.log(`✅ Ethers.js 从 CDN${currentIndex + 1} 加载成功`);
+                            resolve();
+                        } else {
+                            currentIndex++;
+                            tryLoad();
+                        }
+                    };
+                    script.onerror = () => {
+                        console.warn(`CDN${currentIndex + 1} 加载失败，尝试下一个...`);
+                        currentIndex++;
+                        tryLoad();
+                    };
+                    
+                    // 设置超时
+                    setTimeout(() => {
+                        if (typeof ethers === 'undefined') {
+                            script.remove();
+                            currentIndex++;
+                            tryLoad();
+                        }
+                    }, 5000);
+                    
+                    document.head.appendChild(script);
+                }
+                
+                tryLoad();
+            });
+        }
+        
+        // 页面加载完成后立即加载ethers
+        loadEthers().then(() => {
+            console.log('✅ Ethers.js 加载完成');
+            document.getElementById('ethersStatus').innerHTML = '✅ 依赖加载完成';
+        }).catch(error => {
+            console.error('❌ Ethers.js 加载失败:', error);
+            document.getElementById('ethersStatus').innerHTML = '❌ 网络连接问题，请检查网络后刷新页面';
+        });
+    </script>
+    <script>
+        // 合约配置 - 请根据实际部署地址修改
+        let CONTRACT_ADDRESS = ""; // 将在连接钱包后设置
+        const MONAD_CHAIN_ID = "0x279F"; // 10143 in hex
+        
+        const CONTRACT_ABI = [
+            // 铸币函数
+            "function mint(address to, uint256 amount) external",
+            
+            // 销毁函数
+            "function burn(uint256 amount) external",
+            "function burnFrom(address from, uint256 amount) external",
+            "function batchBurn(address[] calldata accounts, uint256[] calldata amounts) external",
+            
+            // 权限管理
+            "function addAuthorizedMinter(address minter) external",
+            "function removeAuthorizedMinter(address minter) external",
+            "function isAuthorizedMinter(address minter) external view returns (bool)",
+            "function isOwner(address addr) external view returns (bool)",
+            
+            // 查询函数
+            "function totalSupply() external view returns (uint256)",
+            "function getTotalBurned() external view returns (uint256)",
+            "function getBurnRate() external view returns (uint256)",
+            "function getRemainingSupply() external view returns (uint256)",
+            "function getDailyMintRemaining() external view returns (uint256)",
+            "function balanceOf(address account) external view returns (uint256)",
+            "function name() external view returns (string)",
+            "function symbol() external view returns (string)",
+            "function decimals() external view returns (uint8)",
+            
+            // 游戏合约管理
+            "function setMinesweeperGame(address _game) external",
+            "function minesweeperGame() external view returns (address)",
+            
+            // 常量
+            "function MAX_SUPPLY() external view returns (uint256)",
+            "function DAILY_MINT_LIMIT() external view returns (uint256)",
+            "function SINGLE_MINT_LIMIT() external view returns (uint256)"
+        ];
+        
+        let provider, signer, contract, userAddress;
+        
+        // 连接钱包
+        async function connectWallet() {
+            try {
+                // 检查MetaMask
+                if (typeof window.ethereum === 'undefined') {
+                    showStatus('walletStatus', 'error', '❌ 请先安装MetaMask钱包扩展<br><small>访问 <a href="https://metamask.io" target="_blank">metamask.io</a> 下载</small>');
+                    return;
+                }
+                
+                // 等待ethers加载完成
+                if (typeof ethers === 'undefined') {
+                    showStatus('walletStatus', 'warning', '⏳ 正在加载依赖库，请稍候...');
+                    
+                    // 最多等待30秒
+                    let attempts = 0;
+                    const maxAttempts = 60; // 30秒，每500ms检查一次
+                    
+                    const checkEthers = setInterval(() => {
+                        attempts++;
+                        if (typeof ethers !== 'undefined') {
+                            clearInterval(checkEthers);
+                            connectWallet(); // 递归调用
+                        } else if (attempts >= maxAttempts) {
+                            clearInterval(checkEthers);
+                            showStatus('walletStatus', 'error', '❌ 依赖加载超时，请刷新页面重试<br><small>如果问题持续存在，请检查网络连接</small>');
+                        }
+                    }, 500);
+                    return;
+                }
+                
+                showStatus('walletStatus', 'info', '🔄 正在连接钱包...');
+                
+                // 请求连接账户
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                showStatus('walletStatus', 'info', '🔄 检查网络设置...');
+                
+                // 检查并切换到Monad网络
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (chainId !== MONAD_CHAIN_ID) {
+                    showStatus('walletStatus', 'warning', '⚠️ 需要切换到Monad测试网...');
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: MONAD_CHAIN_ID }],
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            showStatus('walletStatus', 'info', '🔄 正在添加Monad测试网...');
+                            // 添加Monad测试网
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: MONAD_CHAIN_ID,
+                                    chainName: 'Monad Testnet',
+                                    nativeCurrency: {
+                                        name: 'MON',
+                                        symbol: 'MON',
+                                        decimals: 18
+                                    },
+                                    rpcUrls: ['https://testnet-rpc.monad.xyz'],
+                                    blockExplorerUrls: ['https://testnet-explorer.monad.xyz']
+                                }]
+                            });
+                            showStatus('walletStatus', 'success', '✅ Monad测试网添加成功');
+                        } else if (switchError.code === 4001) {
+                            showStatus('walletStatus', 'error', '❌ 用户拒绝切换网络，请手动切换到Monad测试网');
+                            return;
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                }
+                
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                showStatus('walletStatus', 'info', '🔄 正在设置合约地址...');
+                
+                // 智能合约地址输入
+                CONTRACT_ADDRESS = prompt(
+                    '请输入FMH代币合约地址:\n\n提示：如果是第一次使用，可以使用默认地址\n或者输入您自己的合约地址', 
+                    '0xFa32A01E4FDAde90204902EDfEa63C150407C736'
+                );
+                
+                if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS.trim() === '') {
+                    showStatus('walletStatus', 'error', '❌ 必须提供有效的合约地址才能继续');
+                    return;
+                }
+                
+                CONTRACT_ADDRESS = CONTRACT_ADDRESS.trim();
+                
+                // 验证合约地址格式
+                if (!ethers.utils.isAddress(CONTRACT_ADDRESS)) {
+                    showStatus('walletStatus', 'error', '❌ 合约地址格式错误，请输入有效的以太坊地址');
+                    return;
+                }
+                
+                showStatus('walletStatus', 'info', '🔄 正在连接合约...');
+                
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                
+                // 测试合约连接
+                try {
+                    const contractName = await contract.name();
+                    console.log('✅ 合约连接成功:', contractName);
+                } catch (testError) {
+                    showStatus('walletStatus', 'error', `❌ 合约连接失败，请检查合约地址是否正确<br><small>错误: ${testError.message}</small>`);
+                    return;
+                }
+                
+                showStatus('walletStatus', 'info', '🔄 检查用户权限...');
+                
+                // 检查用户权限
+                const isOwner = await contract.isOwner(userAddress);
+                const isMinter = await contract.isAuthorizedMinter(userAddress);
+                
+                if (!isOwner && !isMinter) {
+                    document.getElementById('walletStatus').innerHTML = `
+                        <div class="status warning">
+                            ⚠️ 连接成功，但权限受限<br>
+                            <strong>地址:</strong> ${userAddress}<br>
+                            <strong>状态:</strong> 此地址没有Owner或铸币权限<br>
+                            <small>某些功能可能无法使用</small>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('walletStatus').innerHTML = `
+                        <div class="status success">
+                            ✅ 钱包连接成功<br>
+                            <strong>地址:</strong> ${userAddress}<br>
+                            <strong>权限:</strong> ${isOwner ? '✅ Owner' : ''} ${isMinter ? '✅ Minter' : ''}
+                        </div>
+                    `;
+                }
+                
+                // 更新合约地址显示
+                document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS;
+                
+                // 显示主面板
+                document.getElementById('mainPanel').classList.remove('hidden');
+                
+                // 自动刷新合约信息
+                await refreshContractInfo();
+                
+            } catch (error) {
+                console.error('连接失败:', error);
+                showStatus('walletStatus', 'error', `❌ 连接失败: ${error.message}`);
+            }
+        }
+        
+        // 刷新合约信息
+        async function refreshContractInfo() {
+            try {
+                showLoading('contractInfo');
+                
+                const [
+                    name, symbol, decimals, totalSupply, totalBurned, 
+                    remainingSupply, dailyRemaining, maxSupply, 
+                    dailyLimit, singleLimit, gameContract
+                ] = await Promise.all([
+                    contract.name(),
+                    contract.symbol(),
+                    contract.decimals(),
+                    contract.totalSupply(),
+                    contract.getTotalBurned(),
+                    contract.getRemainingSupply(),
+                    contract.getDailyMintRemaining(),
+                    contract.MAX_SUPPLY(),
+                    contract.DAILY_MINT_LIMIT(),
+                    contract.SINGLE_MINT_LIMIT(),
+                    contract.minesweeperGame()
+                ]);
+                
+                const burnRate = await contract.getBurnRate();
+                
+                document.getElementById('contractInfo').innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="value">${name}</div>
+                            <div class="label">代币名称</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${symbol}</div>
+                            <div class="label">代币符号</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${formatToken(totalSupply)}</div>
+                            <div class="label">总供应量</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${formatToken(totalBurned)}</div>
+                            <div class="label">已销毁数量</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${(burnRate / 100).toFixed(2)}%</div>
+                            <div class="label">销毁率</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${formatToken(remainingSupply)}</div>
+                            <div class="label">剩余可铸造</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${formatToken(dailyRemaining)}</div>
+                            <div class="label">今日剩余额度</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="value">${gameContract === '0x0000000000000000000000000000000000000000' ? '未设置' : '已设置'}</div>
+                            <div class="label">游戏合约状态</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('获取合约信息失败:', error);
+                showStatus('contractInfo', 'error', `❌ 获取合约信息失败: ${error.message}`);
+            }
+        }
+        
+        // 铸造代币
+        async function mintTokens() {
+            try {
+                const toAddress = document.getElementById('mintToAddress').value.trim();
+                const amount = document.getElementById('mintAmount').value.trim();
+                
+                if (!toAddress || !amount) {
+                    showStatus('mintStatus', 'error', '❌ 请填写完整的铸币信息');
+                    return;
+                }
+                
+                if (!ethers.utils.isAddress(toAddress)) {
+                    showStatus('mintStatus', 'error', '❌ 接收地址格式错误');
+                    return;
+                }
+                
+                if (parseFloat(amount) <= 0) {
+                    showStatus('mintStatus', 'error', '❌ 铸币数量必须大于0');
+                    return;
+                }
+                
+                showStatus('mintStatus', 'info', '⏳ 正在处理铸币交易，请在钱包中确认...');
+                
+                const mintAmount = ethers.utils.parseEther(amount);
+                const tx = await contract.mint(toAddress, mintAmount);
+                
+                showStatus('mintStatus', 'info', `⏳ 交易已提交，等待确认...<br><small>交易哈希: ${tx.hash}</small>`);
+                
+                const receipt = await tx.wait();
+                showStatus('mintStatus', 'success', `✅ 铸币成功！<br>已向 ${toAddress} 铸造 ${amount} FMH<br><small>Gas费用: ${receipt.gasUsed.toString()}</small>`);
+                
+                // 清空表单并刷新信息
+                document.getElementById('mintToAddress').value = '';
+                document.getElementById('mintAmount').value = '';
+                await refreshContractInfo();
+                
+            } catch (error) {
+                console.error('铸币失败:', error);
+                let errorMsg = '❌ 铸币失败: ';
+                if (error.message.includes('Exceeds single mint limit')) {
+                    errorMsg += '超过单次铸币限制';
+                } else if (error.message.includes('Exceeds daily mint limit')) {
+                    errorMsg += '超过每日铸币限制';
+                } else if (error.message.includes('Exceeds maximum supply')) {
+                    errorMsg += '超过总供应量限制';
+                } else if (error.message.includes('Not authorized')) {
+                    errorMsg += '没有铸币权限';
+                } else {
+                    errorMsg += error.message;
+                }
+                showStatus('mintStatus', 'error', errorMsg);
+            }
+        }
+        
+        // 切换销毁输入框
+        function toggleBurnInputs() {
+            const burnType = document.getElementById('burnType').value;
+            const burnFromGroup = document.getElementById('burnFromGroup');
+            
+            if (burnType === 'burnFrom') {
+                burnFromGroup.style.display = 'block';
+            } else {
+                burnFromGroup.style.display = 'none';
+            }
+        }
+        
+        // 销毁代币
+        async function burnTokens() {
+            try {
+                const burnType = document.getElementById('burnType').value;
+                const amount = document.getElementById('burnAmount').value.trim();
+                
+                if (!amount) {
+                    showStatus('burnStatus', 'error', '❌ 请输入销毁数量');
+                    return;
+                }
+                
+                if (parseFloat(amount) <= 0) {
+                    showStatus('burnStatus', 'error', '❌ 销毁数量必须大于0');
+                    return;
+                }
+                
+                const burnAmount = ethers.utils.parseEther(amount);
+                let tx;
+                
+                if (burnType === 'burn') {
+                    // 销毁自己的代币
+                    if (!confirm(`确认要销毁您的 ${amount} FMH 代币吗？\n\n⚠️ 此操作不可撤销！`)) {
+                        return;
+                    }
+                    
+                    showStatus('burnStatus', 'warning', '⏳ 正在销毁您的代币...');
+                    tx = await contract.burn(burnAmount);
+                    
+                } else {
+                    // 销毁他人的代币
+                    const fromAddress = document.getElementById('burnFromAddress').value.trim();
+                    
+                    if (!fromAddress || !ethers.utils.isAddress(fromAddress)) {
+                        showStatus('burnStatus', 'error', '❌ 请输入有效的目标地址');
+                        return;
+                    }
+                    
+                    if (!confirm(`确认要销毁 ${fromAddress} 的 ${amount} FMH 代币吗？\n\n⚠️ 此操作不可撤销！`)) {
+                        return;
+                    }
+                    
+                    showStatus('burnStatus', 'warning', '⏳ 正在销毁目标地址的代币...');
+                    tx = await contract.burnFrom(fromAddress, burnAmount);
+                }
+                
+                showStatus('burnStatus', 'info', `⏳ 交易已提交，等待确认...<br><small>交易哈希: ${tx.hash}</small>`);
+                
+                await tx.wait();
+                showStatus('burnStatus', 'success', `✅ 代币销毁成功！<br>已销毁 ${amount} FMH`);
+                
+                // 清空表单并刷新信息
+                document.getElementById('burnAmount').value = '';
+                document.getElementById('burnFromAddress').value = '';
+                await refreshContractInfo();
+                
+            } catch (error) {
+                console.error('销毁失败:', error);
+                let errorMsg = '❌ 销毁失败: ';
+                if (error.message.includes('Insufficient balance')) {
+                    errorMsg += '余额不足';
+                } else if (error.message.includes('Not authorized')) {
+                    errorMsg += '没有权限执行此操作';
+                } else {
+                    errorMsg += error.message;
+                }
+                showStatus('burnStatus', 'error', errorMsg);
+            }
+        }
+        
+        // 添加批量项目
+        function addBatchItem() {
+            const batchList = document.getElementById('batchBurnList');
+            const newItem = document.createElement('div');
+            newItem.className = 'batch-item';
+            newItem.innerHTML = `
+                <input type="text" placeholder="地址 (0x...)" class="batch-address">
+                <input type="number" placeholder="数量" class="batch-amount" min="0" step="0.001">
+                <button class="btn btn-danger btn-small" onclick="removeBatchItem(this)">删除</button>
+            `;
+            batchList.appendChild(newItem);
+        }
+        
+        // 移除批量项目
+        function removeBatchItem(button) {
+            const batchList = document.getElementById('batchBurnList');
+            if (batchList.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                showStatus('batchBurnStatus', 'warning', '⚠️ 至少需要保留一个项目');
+            }
+        }
+        
+        // 执行批量销毁
+        async function executeBatchBurn() {
+            try {
+                const batchItems = document.querySelectorAll('.batch-item');
+                const addresses = [];
+                const amounts = [];
+                
+                for (let item of batchItems) {
+                    const address = item.querySelector('.batch-address').value.trim();
+                    const amount = item.querySelector('.batch-amount').value.trim();
+                    
+                    if (address && amount) {
+                        if (!ethers.utils.isAddress(address)) {
+                            showStatus('batchBurnStatus', 'error', `❌ 地址格式错误: ${address}`);
+                            return;
+                        }
+                        
+                        if (parseFloat(amount) <= 0) {
+                            showStatus('batchBurnStatus', 'error', `❌ 数量必须大于0: ${amount}`);
+                            return;
+                        }
+                        
+                        addresses.push(address);
+                        amounts.push(ethers.utils.parseEther(amount));
+                    }
+                }
+                
+                if (addresses.length === 0) {
+                    showStatus('batchBurnStatus', 'error', '❌ 请至少填写一个有效的地址和数量');
+                    return;
+                }
+                
+                const totalAmount = amounts.reduce((sum, amt) => sum.add(amt), ethers.BigNumber.from(0));
+                const totalFormatted = ethers.utils.formatEther(totalAmount);
+                
+                if (!confirm(`确认要批量销毁总共 ${totalFormatted} FMH 代币吗？\n涉及 ${addresses.length} 个地址\n\n⚠️ 此操作不可撤销！`)) {
+                    return;
+                }
+                
+                showStatus('batchBurnStatus', 'warning', '⏳ 正在执行批量销毁...');
+                
+                const tx = await contract.batchBurn(addresses, amounts);
+                showStatus('batchBurnStatus', 'info', `⏳ 交易已提交，等待确认...<br><small>交易哈希: ${tx.hash}</small>`);
+                
+                await tx.wait();
+                showStatus('batchBurnStatus', 'success', `✅ 批量销毁成功！<br>共销毁 ${totalFormatted} FMH (${addresses.length} 个地址)`);
+                
+                // 清空批量表单
+                document.querySelectorAll('.batch-address').forEach(input => input.value = '');
+                document.querySelectorAll('.batch-amount').forEach(input => input.value = '');
+                await refreshContractInfo();
+                
+            } catch (error) {
+                console.error('批量销毁失败:', error);
+                showStatus('batchBurnStatus', 'error', `❌ 批量销毁失败: ${error.message}`);
+            }
+        }
+        
+        // 添加铸币者
+        async function addMinter() {
+            try {
+                const minterAddress = document.getElementById('newMinterAddress').value.trim();
+                
+                if (!minterAddress || !ethers.utils.isAddress(minterAddress)) {
+                    showStatus('minterStatus', 'error', '❌ 请输入有效的地址');
+                    return;
+                }
+                
+                showStatus('minterStatus', 'info', '⏳ 正在添加铸币者...');
+                
+                const tx = await contract.addAuthorizedMinter(minterAddress);
+                showStatus('minterStatus', 'info', `⏳ 交易已提交，等待确认...<br><small>交易哈希: ${tx.hash}</small>`);
+                
+                await tx.wait();
+                showStatus('minterStatus', 'success', `✅ 铸币者添加成功！<br>${minterAddress} 现在拥有铸币权限`);
+                
+                document.getElementById('newMinterAddress').value = '';
+                
+            } catch (error) {
+                console.error('添加铸币者失败:', error);
+                let errorMsg = '❌ 添加铸币者失败: ';
+                if (error.message.includes('Minter already authorized')) {
+                    errorMsg += '该地址已经是铸币者';
+                } else if (error.message.includes('Not authorized')) {
+                    errorMsg += '没有权限执行此操作';
+                } else {
+                    errorMsg += error.message;
+                }
+                showStatus('minterStatus', 'error', errorMsg);
+            }
+        }
+        
+        // 移除铸币者
+        async function removeMinter() {
+            try {
+                const minterAddress = document.getElementById('removeMinterAddress').value.trim();
+                
+                if (!minterAddress || !ethers.utils.isAddress(minterAddress)) {
+                    showStatus('minterStatus', 'error', '❌ 请输入有效的地址');
+                    return;
+                }
+                
+                if (!confirm(`确认要移除 ${minterAddress} 的铸币权限吗？`)) {
+                    return;
+                }
+                
+                showStatus('minterStatus', 'info', '⏳ 正在移除铸币者...');
+                
+                const tx = await contract.removeAuthorizedMinter(minterAddress);
+                await tx.wait();
+                
+                showStatus('minterStatus', 'success', `✅ 铸币者移除成功！<br>${minterAddress} 的铸币权限已被撤销`);
+                
+                document.getElementById('removeMinterAddress').value = '';
+                
+            } catch (error) {
+                console.error('移除铸币者失败:', error);
+                let errorMsg = '❌ 移除铸币者失败: ';
+                if (error.message.includes('Minter not authorized')) {
+                    errorMsg += '该地址不是铸币者';
+                } else if (error.message.includes('Not authorized')) {
+                    errorMsg += '没有权限执行此操作';
+                } else {
+                    errorMsg += error.message;
+                }
+                showStatus('minterStatus', 'error', errorMsg);
+            }
+        }
+        
+        // 检查铸币权限
+        async function checkMinterPermission() {
+            try {
+                const checkAddress = document.getElementById('checkMinterAddress').value.trim();
+                
+                if (!checkAddress || !ethers.utils.isAddress(checkAddress)) {
+                    showStatus('minterStatus', 'error', '❌ 请输入有效的地址');
+                    return;
+                }
+                
+                const [isMinter, isOwner] = await Promise.all([
+                    contract.isAuthorizedMinter(checkAddress),
+                    contract.isOwner(checkAddress)
+                ]);
+                
+                let statusText = `🔍 权限查询结果:<br><strong>地址:</strong> ${checkAddress}<br>`;
+                statusText += `<strong>Owner权限:</strong> ${isOwner ? '✅ 是' : '❌ 否'}<br>`;
+                statusText += `<strong>铸币权限:</strong> ${isMinter ? '✅ 是' : '❌ 否'}`;
+                
+                showStatus('minterStatus', 'info', statusText);
+                
+            } catch (error) {
+                console.error('权限检查失败:', error);
+                showStatus('minterStatus', 'error', `❌ 权限检查失败: ${error.message}`);
+            }
+        }
+        
+        // 查询余额
+        async function queryBalance() {
+            try {
+                const queryAddr = document.getElementById('queryAddress').value.trim();
+                
+                if (!queryAddr || !ethers.utils.isAddress(queryAddr)) {
+                    showStatus('queryResults', 'error', '❌ 请输入有效的地址');
+                    return;
+                }
+                
+                showLoading('queryResults');
+                
+                const balance = await contract.balanceOf(queryAddr);
+                
+                showStatus('queryResults', 'info', `💰 余额查询结果:<br><strong>地址:</strong> ${queryAddr}<br><strong>FMH余额:</strong> ${formatToken(balance)}`);
+                
+            } catch (error) {
+                console.error('余额查询失败:', error);
+                showStatus('queryResults', 'error', `❌ 余额查询失败: ${error.message}`);
+            }
+        }
+        
+        // 获取销毁率
+        async function getBurnRate() {
+            try {
+                showLoading('queryResults');
+                
+                const [totalSupply, totalBurned, burnRate] = await Promise.all([
+                    contract.totalSupply(),
+                    contract.getTotalBurned(),
+                    contract.getBurnRate()
+                ]);
+                
+                let resultText = `📈 销毁统计信息:<br>`;
+                resultText += `<strong>总供应量:</strong> ${formatToken(totalSupply)}<br>`;
+                resultText += `<strong>已销毁数量:</strong> ${formatToken(totalBurned)}<br>`;
+                resultText += `<strong>销毁率:</strong> ${(burnRate / 100).toFixed(2)}%`;
+                
+                showStatus('queryResults', 'info', resultText);
+                
+            } catch (error) {
+                console.error('获取销毁率失败:', error);
+                showStatus('queryResults', 'error', `❌ 获取销毁率失败: ${error.message}`);
+            }
+        }
+        
+        // 设置游戏合约
+        async function setGameContract() {
+            try {
+                const gameAddress = document.getElementById('gameContractAddress').value.trim();
+                
+                if (!gameAddress || !ethers.utils.isAddress(gameAddress)) {
+                    showStatus('settingsStatus', 'error', '❌ 请输入有效的游戏合约地址');
+                    return;
+                }
+                
+                if (!confirm(`确认要设置游戏合约地址为:\n${gameAddress}\n\n这将影响游戏相关的代币操作。`)) {
+                    return;
+                }
+                
+                showStatus('settingsStatus', 'info', '⏳ 正在更新游戏合约地址...');
+                
+                const tx = await contract.setMinesweeperGame(gameAddress);
+                showStatus('settingsStatus', 'info', `⏳ 交易已提交，等待确认...<br><small>交易哈希: ${tx.hash}</small>`);
+                
+                await tx.wait();
+                showStatus('settingsStatus', 'success', `✅ 游戏合约地址设置成功！<br>新地址: ${gameAddress}`);
+                
+                document.getElementById('gameContractAddress').value = '';
+                await refreshContractInfo();
+                
+            } catch (error) {
+                console.error('设置游戏合约失败:', error);
+                let errorMsg = '❌ 设置游戏合约失败: ';
+                if (error.message.includes('Not authorized')) {
+                    errorMsg += '没有权限执行此操作';
+                } else {
+                    errorMsg += error.message;
+                }
+                showStatus('settingsStatus', 'error', errorMsg);
+            }
+        }
+        
+        // 查询当前游戏合约
+        async function getCurrentGameContract() {
+            try {
+                showLoading('settingsStatus');
+                
+                const gameContract = await contract.minesweeperGame();
+                
+                let statusText = `🎮 当前游戏合约信息:<br><strong>地址:</strong> `;
+                if (gameContract === '0x0000000000000000000000000000000000000000') {
+                    statusText += '未设置游戏合约';
+                } else {
+                    statusText += gameContract;
+                }
+                
+                showStatus('settingsStatus', 'info', statusText);
+                
+            } catch (error) {
+                console.error('查询游戏合约失败:', error);
+                showStatus('settingsStatus', 'error', `❌ 查询游戏合约失败: ${error.message}`);
+            }
+        }
+        
+        // 工具函数
+        function formatToken(amount) {
+            try {
+                return parseFloat(ethers.utils.formatEther(amount)).toLocaleString('zh-CN', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 6
+                });
+            } catch {
+                return '0';
+            }
+        }
+        
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<div class="status ${type}">${message}</div>`;
+            }
+        }
+        
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<div class="status info"><span class="loading"></span> 正在加载...</div>`;
+            }
+        }
+        
+        // 页面加载完成后的初始化
+        window.addEventListener('load', async () => {
+            // 检查ethers.js是否加载
+            let attempts = 0;
+            const checkEthers = setInterval(() => {
+                attempts++;
+                if (typeof ethers !== 'undefined') {
+                    clearInterval(checkEthers);
+                    console.log('✅ Ethers.js 加载完成');
+                    
+                    // 如果已经连接过，尝试自动重连
+                    if (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress) {
+                        console.log('检测到已连接的钱包，尝试自动重连...');
+                        // 可选择自动重连
+                    }
+                } else if (attempts > 100) {
+                    clearInterval(checkEthers);
+                    showStatus('walletStatus', 'error', '❌ 加载依赖失败，请刷新页面重试');
+                }
+            }, 100);
+        });
+        
+        // 监听钱包账户变化
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    // 用户断开连接
+                    location.reload();
+                } else {
+                    // 用户切换账户
+                    location.reload();
+                }
+            });
+            
+            window.ethereum.on('chainChanged', (chainId) => {
+                // 网络切换，重新加载页面
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
